@@ -32,6 +32,25 @@ var person2=new CreatePerson('王麻子',25);
 person.run();
 ```
 
+```js
+function CreatePerson(name,age){
+	this.name=name;
+	this.age=age;
+	this.run=function(){
+		console.log(this.name,this.age)
+	}
+    return 123;  
+    return {sex:'男'};  
+    // 构造函数中，浏览器会默认把实例返回,如果手动加了return
+    	// 返回值类型不会改变数据,
+        // 返回引用类型，当前实例会被自己返回的引用类型覆盖
+}
+var person=new CreatePerson('张三',18); 
+console.log(person); 
+// 如果return 123,值为{name: "张三", age: 18, run: ƒ}
+// 如果 return {sex:'男'}，值为{sex:'男'}
+```
+
 
 
 1 . 任何对象都拥有`__proto__`(隐式原型) 属性, 一般指向他们的构造函数的原型 (prototype).
@@ -117,55 +136,14 @@ Object.constructor == Function  // => true
 
 
 
-## 原型链
+## 原型与原型链
 
-实例对象与原型之间的连接，叫做原型链
-
-**查找模式：**
-
-通过对象名属性名的形式获取属性的时候，首先在对象的私有属性上查找，如果存在这个属性，则获取私有的属性值
-
-如果私有的没有，则通过`__proto__`在构造函数的原型获取，如果还没有则通过`__proto__`继续往上查找，知道找到Object.prototype为止，如果还是没找到返回undefined
-
-
-
-某一个方法中的this=>看执行的时候，前面是谁，this就是谁
-
-1. 需要先确定this的指向（this是谁）
-2. 把this替换成对应的代码
-3. 按照原型链查找的机制，一步步查找结果
-
-```js
-function Fn(){
-    this.x=100;
-    this.y=200;
-    this.getY=function(){
-        console.log(this.y);
-    }
-}
-Fn.prototype={
-    constructor:Fn,
-    y:300,
-    getX:function(){
-        console.log(this.x)
-    },
-    getY:function(){
-        console.log(this.y)
-    }
-}
-var f=new Fn;
-f.getX();  // =>console.log(f.x)=>寻找私有属性x：100=>值为:100
-f.__proto__.getX(); 
-// =>console.log(f.__proro__.x)=>console.log(Fn.prototype.x)=>原型上没有 => undefined
-
-Fn.prototype.getX()  // => Fn.prototype.x=>undefined
-```
-
-
-
-## prototype
-
-每一个构造函数都有个prototype属性，指向实例的`__proto__`
+- 
+  当我们声明了一个函数(构造函数,类)的时候，天生自带了一个`prototype`的属性。并且这个`prototype`的值也是一个对象类型的。这个对象类型值也有一个天生自带的属性叫`constructor`并且这个属性的值是函数(构造函数，类)本身
+-  这个类的实例也会有一个叫做`__proto_`_的天生自带的属性,并且这个属性的值也是一个对象类型的。这个值是这个实例所属类的原型.
+- 每一个引用类型都有一个天生自带的属性叫`__proto__`,所以说我们的`prototype`的值也有天生自带一个`__proto__`的属性。并且这个属性的值也是一个对象类型，一直到我们的基类`Object`
+- 通过类的原型添加的属性和方法都是公有的，每个实例都会自带
+- 一个实例的方法在运行的时候，如果这个方法是自己私有的，那么就直接用，如果不是私有的，那么通过`__proto__`去所属类的原型上去查找，如果还没有就通过原型的`__proto_`_一直查到基类的`Object`.如果还没有报错，如果有就直接用了。我们把这种通过`__proto__`查找的机制叫做原型链.
 
 ```js
 function Person(name,age,sex){
@@ -192,11 +170,42 @@ var xiaoming=new Person("小明",20,"男");
 xiaoming.random(); // 0.3456289539654427
 ```
 
+某一个方法中的this=>看执行的时候，前面是谁，this就是谁
+
+1. 需要先确定this的指向（this是谁）
+2. 把this替换成对应的代码
+3. 按照原型链查找的机制，一步步查找结果
+
+```js
+function Fn(){
+    this.x=100;
+    this.y=200;
+    this.getY=function(){
+        console.log(this.y);
+    }
+}
+Fn.prototype={ 
+    // prototype写成对象的模式，需要设置constructor，不写会把需要设置constructor改为object
+    constructor:Fn, 
+    y:300,
+    getX:function(){
+        console.log(this.x)
+    },
+    getY:function(){
+        console.log(this.y)
+    }
+}
+var f=new Fn;
+f.getX();  // =>console.log(f.x)=>寻找私有属性x：100=>值为:100
+f.__proto__.getX(); 
+// =>console.log(f.__proro__.x)=>console.log(Fn.prototype.x)=>原型上没有 => undefined
+
+Fn.prototype.getX()  // => Fn.prototype.x=>undefined
+```
+
 
 
 ## 内置构造函数
-
-
 
 ### Object
 
@@ -247,7 +256,7 @@ Function.prototype.__proto__ === Object.prototype  // true
 
 
 
-![logo](D:/front_end/docs/docs/images/prototype1.png)
+![logo](../../images/prototype1.png)
 
 
 
@@ -273,7 +282,7 @@ Array是系统内置的数组构造函数，用于构造数组。
 
 
 
-![logo](D:/front_end/docs/docs/images/prototype.png)
+![logo](../../images/prototype.png)
 
 
 
@@ -338,7 +347,7 @@ var  a=new Number(3);
 console.log(a);
 ```
 
-![logo](D:/front_end/docs/docs/images/number.png)
+![logo](../../images/number.png)
 
 **有个坑**
 
@@ -385,7 +394,7 @@ var str=new Boolean(false);    // Boolean {false}
 
 `任何一个构造函数的prototype身上都有个constructor属性，指向构造函数`
 
-![logo](D:/front_end/docs/docs/images/constructor.png)
+![logo](../../images/constructor.png)
 
 
 
@@ -431,7 +440,7 @@ console.log(Array.prototype.isPrototypeOf([1,2,3]));
 
 **把父类的私有公有属性方法，都变成子类的公有属性方法**
 
-![logo](D:/front_end/docs/docs/images/jc.png)
+![logo](../../images/jc.png)
 
 
 
@@ -505,7 +514,7 @@ man.say();
 
 
 
-## 冒充对象继承
+### 冒充对象继承
 
 ```js
 <script>
@@ -534,7 +543,7 @@ man.say();
 
 
 
-## 寄生组合式继承
+### 寄生组合式继承
 
 <https://www.cnblogs.com/niulina/p/5712263.html>
 
@@ -556,7 +565,25 @@ man.say();
 
 
 
-## **hasOwnProperty** 
+## hasOwnProperty
 
 判断对象实例的是否具有某个属性
+
+
+
+## 练习
+
+```js
+ function Fn(){
+     var num = 10; //在实例运算的时候，这个里的私有变量跟实例没有关系
+     this.x = 100; //window.x = 100 相当于给window添加了x的属性值为100
+     this.getX = function (){ //相当于给window添加了一个getX变量，至始一个匿名函数
+         return (this.x); //100
+     }
+ }
+var f = new Fn(); //  f = {x:100,getX:function (){console.log(this.x)}}
+console.log(f);
+console.log(f.hasOwnProperty('X')) //
+console.log(f.num); //undefined
+```
 
