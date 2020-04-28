@@ -587,3 +587,5 @@ console.log(f.hasOwnProperty('X')) //
 console.log(f.num); //undefined
 ```
 
+ https://www.cnblogs.com/petterguo/p/9152956.html 
+

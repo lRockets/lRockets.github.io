@@ -55,7 +55,18 @@ function flatten(arr){
 flatten(arr);
 ```
 
-
+## 数组分割
+```js
+var arr=[1,2,3,4,5];
+function splitArr(arr,num){
+	var resultArr=[];
+	for(var i=0;i<arr.length;i+=num){
+		resultArr.push(arr.slice(i,i+num));
+	}
+	return resultArr;
+}
+splitArr(arr,3); // [[1,2,3],[4,5]]
+```
 
 ## 根据年份获取生肖
 
@@ -64,6 +75,19 @@ function getAnimal(year) {
     var animals = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
     var i = (year - 4) % 12;
     return animals[i];
+}
+```
+
+## js求素数
+```js
+const isPrime = num => {
+    let bount = Math.floor(Math.sqrt(num));
+    for (let i = 2; i <= bount; i++) {
+        if (num % i === 0) {
+            return false
+        }
+    }
+    return num >= 2
 }
 ```
 
