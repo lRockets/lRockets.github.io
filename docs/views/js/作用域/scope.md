@@ -186,6 +186,48 @@ fn()();
 ## 练习
 
 ```js
+var name='珠峰';
+var age=300;
+name=(function(name,age){
+    arguments[0]='珠峰培训';//name='珠峰培训'
+    age=age && this.age;//age实参未传入 undefined
+    console.log(name,age);//'珠峰培训'  undefined
+})(name);
+//全局下的name就等于这个function
+//但是没有return接收返回值 所以是undefined
+console.log(name,age)//undefined 300
+```
+
+```js
+var ary = [12, 23];
+
+function fn(ary) {
+    console.log(ary); // 打印[12,23]
+    ary[0] = 100; // [100,23]  调用函数传入的是引用类型，内部变了 外面会跟这变
+    ary = [100]; // [100]  给私有变量ary重新赋值，切断了与外面引用类型的联系
+    ary[0] = 0; // [0]
+    console.log(ary); // 打印[0]
+}
+
+fn(ary);
+console.log(ary); // [100,23]  
+```
+
+```js
+fn();//=>4
+function fn() {console.log(1);}
+fn();//=>4
+function fn() {console.log(2);}
+fn();//=>4
+var fn=100;//=>带VAR的在提升阶段只把声明处理了,赋值操作没有处理,所以在代码执行的时候需要完成赋值 FN=100
+fn();//=>100() Uncaught TypeError: fn is not a function
+function fn() {console.log(3);}
+fn();
+function fn() {console.log(4);}
+fn();
+```
+
+```js
 function fn(){
 	var i=10;
 	return function(n){
@@ -322,8 +364,5 @@ f(3);  // n=3; 执行代码 3+（--3）=> 3+2=5
 fn()(2); // 先执行fn()，在执行return的函数  全局i为4 => i+=2得到4 => 2+(--4) => 5     全局的i为3
 fn()(3); // 先执行fn()，全局i为3，在执行return的函数  全局i为3+2=5  => 3+（--5） => 7  全局i为4 
 f(4); // 执行fn函数内的小函数,上一步全局的i为4 => 4+(-- 4) => 7
-
-
-     
 ```
 
