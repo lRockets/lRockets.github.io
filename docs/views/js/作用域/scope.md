@@ -17,27 +17,49 @@ title: js作用域
 ### 规则
 
 - 所有的变量与函数，在运行之前，都会提前赋值为`undefined` ，所有的函数在运算前都是整个函数体
+
 - 在全局作用域下的自执行函数不被预解释,预解释只发生在当前作用域
+
 - 无论条件是否成立，都会预解释
+
+  ```js
+  console.log(a);  // => undefined
+  if(true){ // if中定义的变量会变量提升
+  	var a=10;
+  }
+  ```
+
 - `return`下面的代码仍然会被预解释,但是`return`出来的值即使你是一个函数也不会被预解释
+
 - 遇到重名的只留一个 后面的代码会替换前一个
+
 - 变量和函数重名了留下函数
+
+  ```js
+  console.log(a); // f a(){ console.log(10) }
+  var a=10;
+  function a(){
+  	console.log(10);
+  }
+  ```
+
 - 浏览器很懒,声明过的变量,又被声明，不会进行预解析
 
-```js
-console.log(a); // f a(){ console.log(10) }
-var a=10;
-function a(){
-	console.log(10);
-}
-```
+- 预解析时函数体会提升到代码的最上层，函数表达式不会
 
-```js
-console.log(a);  // => undefined
-if(true){ // if中定义的变量会变量提升
-	var a=10;
-}
-```
+  ```js
+  // 函数体
+  function a(){
+  	console.log(a)
+  }
+  
+  // 函数表达式
+  var a=function(){
+  	console.log(a)
+  }
+  ```
+
+  
 
 ```js
 console.log(b); // b is not define 

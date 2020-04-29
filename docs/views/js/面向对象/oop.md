@@ -242,7 +242,40 @@ console.log(obj.__proto__ === Object.prototype)  // true
 
 `任何函数都是Function的实例，Object也是Function的实例，Function自己也是自己的实例`
 
-Object都是Function， new出来的
+`Object`都是`Function`， `new`出来的
+
+#### 函数的三种角色
+
+1. 普通函数
+   - 堆栈内存释放
+   - 作用域链
+2. 类
+   - `prototype` 原型
+   - `__proto__`原型链
+   - 实例
+3. 普通对象
+   - 和普通的`obj`没啥区别,就是对键值对的增删改查
+
+```js
+function Fn(){
+	var n=10;
+	this.m=100;
+}
+Fn.prototype.aa=function(){
+	console.log('aa');
+}
+Fn.bb=function(){
+	console.log('bb');
+}
+Fn() // this:window
+var f=new Fn(); // this:f
+console.log(f.n) // undefined n是变量f，与实例无关
+f.m // 100 实例的所有属性
+f.aa() // 'aa'
+f.bb() // Fn.bb是把Fn当做普通的对象，Fn的实例下面没有bb  f.bb() is not a function
+```
+
+
 
 ```js
 Function.__proto__ === Function.prototype  // true
@@ -274,7 +307,7 @@ sum(4,5);  // 9
 
 
 
-### Array函数
+### Array
 
 Array是系统内置的数组构造函数，用于构造数组。
 
@@ -426,13 +459,45 @@ console.log(Array.prototype.isPrototypeOf([1,2,3]));
 // true
 ```
 
+## hasOwnProperty
+
+判断对象实例的是否具有某个属性
+
+
+
+## propertyIsEnumerable
+
+判断属性是否能够被枚举
+
+```js
+Object.prototype.sex='男';
+var obj={name:'xx',age:10};
+for(var key in obj){ // for in循环默认会把所有私有公有的属性都遍历 name,age,sex
+    if(obj.propertyIsEnumerable(key)){
+    	console.log(key)  // name,age,sex
+    }
+}
+```
+
+## Object.create
+
+创建一个拥有指定原型和若干属性的对象
+
+```js
+function _create(obj){ // object.create原理
+    function Fn(){}
+    Fn.prototype = obj;
+    return new Fn();
+}
+```
+
 
 
 ## 继承
 
 
 
-### 原型链继承
+### 原型继承
 
 让Student类继承Person类，然后还有些自己的属性
 
@@ -492,24 +557,22 @@ var child = function() {
 
 ### 混合继承
 
-call继承+原型链继承
+call继承+原型继承
 
 ```js
-var father = function() {
-	this.age=52;
-    console.log(1);
-	this.say=function(){
-		console.log('hello i am '+ this.name+ ' and i am '+this.age + 'years old');
-	}
+function Box(age) {
+    this.name = ['Lee', 'Jack', 'Hello']
+    this.age = age;
 }
-
-var child = function() {
-	father.call(this);  // 改变this指向，把父类的私有属性方法编程私有的
-	this.name = 'bill';
+Box.prototype.run = function () {
+	return this.name + this.age;
+};
+function Desk(age) {
+	Box.call(this, age); //对象冒充
 }
-
-var man = new child();
-man.say();
+Desk.prototype = new Box(); //原型链继承
+var desk = new Desk(100);
+alert(desk.run());
 ```
 
 
@@ -555,9 +618,8 @@ man.say();
 
 	function SubType(name){
         SuperType.call(this, name);
-        var prototype = Object.create(SuperType.prototype);
-        prototype.constructor = SubType;
-        SubType.prototype = prototype;
+         SubType.prototype = Object.create(SuperType.prototype);
+         SubType.prototype.constructor = SubType;
     }
 
     var s1 = new SubType("niulina");
@@ -565,13 +627,56 @@ man.say();
 
 
 
-## hasOwnProperty
-
-判断对象实例的是否具有某个属性
-
 
 
 ## 练习
+
+### 阿里经典面试题
+
+```js
+function Foo(){
+	getName=function(){
+		console.log(1);
+	}
+	return this;
+}
+Foo.getName=function(){
+	console.log(2);
+}
+Foo.prototype.getName=function(){
+	console.log(3);
+}
+var getName=function(){
+	console.log(4);
+}
+function getName(){
+	console.log(5);
+}
+
+Foo.getName();
+getName();
+Foo().getName();  
+getName();
+new Foo.getName();
+new Foo().getName();
+new new Foo().getName();
+
+// 首先预解析,函数表达式不提升,function getName(){console.log(5);}，函数提升到顶部。
+// 执行Fn.getName()函数,Foo.getName=function(){console.log(2);} 得到2
+// getName() 走var getName=function(){console.log(4);}函数表达式 得到4
+// Foo().getName();  
+	// 执行Foo()，函数预解析，getName为全局，将全局替换为function getName(){console.log(1);},执行window.getName() 得到1
+// getName(); 执行全局getName() 得到1
+// new Foo.getName();
+	// 先执行Foo.getName(),然后被new调用，得到2
+// new Foo().getName();
+	// 先执行new Foo();然后执行getName();执行prototype上的方法，得到3
+// new new Foo().getName(); 
+	// 执行顺序 new Foo() => new Foo().getName() => new new Foo().getName()
+	// 创建实例，执行原型getName()方法得到3
+```
+
+ https://www.cnblogs.com/petterguo/p/9152956.html 
 
 ```js
  function Fn(){
@@ -587,5 +692,5 @@ console.log(f.hasOwnProperty('X')) //
 console.log(f.num); //undefined
 ```
 
- https://www.cnblogs.com/petterguo/p/9152956.html 
+
 
