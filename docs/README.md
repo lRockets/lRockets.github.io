@@ -9,8 +9,9 @@ home: true
 #   background: '#fff',
 #   borderRadius: '1rem',
 # }
+bgImage: '/img.jpg'
 bgImageStyle: {
-  height: '450px'
+  height: '500px'
 }
 isShowTitleInHome: false
 actionText: Guide
@@ -23,3 +24,4 @@ features:
 - title: Tomorrow
   details: 希望更多的爱好者能够参与进来，帮助这个主题更好的成长
 ---
+
