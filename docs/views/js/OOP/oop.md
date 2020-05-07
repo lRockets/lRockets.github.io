@@ -155,7 +155,7 @@ var xiaoming=new Person("xiaoming",12,"男")
 console.log(Person.prototype === xiaoming.__proto__)  // true
 ```
 
-
+`new Person`**也能够执行构造函数，只是没传参**
 
 **构造函数的prototype指向谁，new出来实例的`__proto__`就指向谁，`__proto__`有原型链查找功能**
 
