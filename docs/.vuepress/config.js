@@ -1,5 +1,5 @@
 module.exports = {
-	"title": "lRockets",
+	"title": "前端小屋",
 	"description": "sometimes ever, sometimes never",
 	"plugins": [
 		'cursor-effects'
