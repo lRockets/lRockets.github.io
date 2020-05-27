@@ -13,7 +13,7 @@ categories:
 
 使用`window.getComputedStyle`这个方法获取所有经过浏览器计算过的样式，不兼容`IE6 7 8`
 
-```
+```js
 let style = window.getComputedStyle(element, [pseudoElt]);
 ```
 
