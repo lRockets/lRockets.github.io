@@ -81,6 +81,6 @@ module.exports = {
 		"startYear": "2017"
 	},
 	"markdown": {
-		"lineNumbers": true
+		"lineNumbers": false
 	}
 }
