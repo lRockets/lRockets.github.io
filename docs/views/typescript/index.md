@@ -302,8 +302,27 @@ function sum(...parameters: number[]) {
 }
 let total=sum(1, 2, 3);
 console.log(total)
-
 ```
+
+## @ts-ignore
+
+忽略类型检查
+
+```tsx
+function createArray<T>(length:number,value:T):T[]{
+    let arr:T[]=[];
+    for(let i=0;i<length;i++){
+        // @ts-ignore
+        arr[i]=3;
+    }
+    return arr;
+}
+
+let arr=createArray<string>(3,'x');
+console.log(arr);
+```
+
+
 
 ## tsconfig.json
 
