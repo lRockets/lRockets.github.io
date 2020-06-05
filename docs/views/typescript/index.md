@@ -177,7 +177,7 @@ c.reset();
 
 ### 接口继承
 
-```tsx
+```js
 interface Shape {
     color: string;
 }
@@ -191,11 +191,246 @@ square.color = "blue";
 square.sideLength = 10;
 ```
 
+## 结构类型系统
 
+### 接口的兼容性
+
+- 如果传入的变量和声明的类型不匹配，TS就会进行兼容性检查
+- 原理是`Duck-Check`,就是说只要目标类型中声明的属性变量在源类型中都存在就是兼容的
+
+```js
+interface Animal {
+    name: string;
+    age: number;
+}
+
+interface Person {
+    name: string;
+    age: number;
+    gender: number
+}
+// 要判断目标类型`Person`是否能够兼容输入的源类型`Animal`
+function getName(animal: Animal): string {
+    return animal.name;
+}
+
+let p = {
+    name: 'zhufeng',
+    age: 10,
+    gender: 0
+}
+
+getName(p);
+//只有在传参的时候两个变量之间才会进行兼容性的比较，赋值的时候并不会比较,会直接报错
+let a: Animal = {
+    name: 'zhufeng',
+    age: 10,
+    gender: 0
+}
+```
+
+### 基本类型的兼容性
+
+```js
+//基本数据类型也有兼容性判断
+let num : string|number;
+let str:string='zhufeng';
+num = str;
+
+//只要有toString()方法就可以赋给字符串变量
+let num2 : {
+  toString():string
+}
+
+let str2:string='jiagou';
+num2 = str2;
+```
+
+### 类的兼容性
+
+- 在TS中是结构类型系统，只会对比结构而不在意类型
+
+```js
+class Animal{
+    name:string
+}
+class Bird extends Animal{
+   swing:number
+}
+
+let a:Animal;
+a = new Bird();
+
+let b:Bird;
+//并不是父类兼容子类，子类不兼容父类
+b = new Animal();
+class Animal{
+  name:string
+}
+//如果父类和子类结构一样，也可以的
+class Bird extends Animal{}
+
+let a:Animal;
+a = new Bird();
+
+let b:Bird;
+b = new Animal();
+//甚至没有关系的两个类的实例也是可以的
+class Animal{
+  name:string
+}
+class Bird{
+  name:string
+}
+let a:Animal ;
+a = new Bird();
+let b:Bird;
+b = new Animal();
+```
+
+### 函数的兼容性
+
+- 比较函数的时候是要先比较函数的参数，再比较函数的返回值
+
+#### 比较参数
+
+```js
+type sumFunc = (a:number,b:number)=>number;
+let sum:sumFunc;
+function f1(a:number,b:number):number{
+  return a+b;
+}
+sum = f1;
+
+//可以省略一个参数
+function f2(a:number):number{
+   return a;
+}
+sum = f2;
+
+//可以省略二个参数
+function f3():number{
+    return 0;
+}
+sum = f3;
+
+ //多一个参数可不行
+function f4(a:number,b:number,c:number){
+    return a+b+c;
+}
+sum = f4;
+```
+
+#### 比较返回值
+
+```js
+type GetPerson = ()=>{name:string,age:number};
+let getPerson:GetPerson;
+//返回值一样可以
+function g1(){
+    return {name:'zhufeng',age:10};
+}
+getPerson = g1;
+//返回值多一个属性也可以
+function g2(){
+    return {name:'zhufeng',age:10,gender:'male'};
+}
+getPerson = g2;
+//返回值少一个属性可不行
+function g3(){
+    return {name:'zhufeng'};
+}
+getPerson = g3;
+//因为有可能要调用返回值上的方法
+getPerson().age.toFixed();
+```
+
+### 函数参数的协变
+
+- 当比较函数参数类型时，只有当源函数参数能够赋值给目标函数或者反过来时才能赋值成功
+- `"strictFunctionTypes": false`
+
+```js
+let sourceFunc = (args: number | string) => { }
+let target1Func = (args: number | string) => { }
+let target2Func = (args: number | string | boolean) => { }
+sourceFunc = target1Func;
+sourceFunc = target2Func;
+
+interface Event {
+    timestamp: number;
+}
+
+interface MouseEvent extends Event {
+    eventX: number;
+    eventY: number;
+}
+
+interface KeyEvent extends Event {
+    keyCode: number;
+}
+
+function addEventListener(eventType: EventType, handler: (n: Event) => void) { }
+
+addEventListener(EventType.Mouse, (e: MouseEvent) => console.log(e.eventX + ', ' + e.eventY));
+addEventListener(EventType.Mouse, <(e: Event) => void>((e: MouseEvent) => console.log(e.eventX + ', ' + e.eventY)));
+```
+
+### 泛型的兼容性
+
+- 泛型在判断兼容性的时候会先判断具体的类型,然后再进行兼容性判断
+
+```js
+//接口内容为空没用到泛型的时候是可以的
+//1.接口内容为空没用到泛型的时候是可以的
+interface Empty<T>{}
+let x!:Empty<string>;
+let y!:Empty<number>;
+x = y;
+
+//2.接口内容不为空的时候不可以
+interface NotEmpty<T>{
+  data:T
+}
+let x1!:NotEmpty<string>;
+let y1!:NotEmpty<number>;
+x1 = y1;
+
+//实现原理如下,称判断具体的类型再判断兼容性
+interface NotEmptyString{
+    data:string
+}
+
+interface NotEmptyNumber{
+    data:number
+}
+let xx2!:NotEmptyString;
+let yy2!:NotEmptyNumber;
+xx2 = yy2;
+```
+
+### 枚举的兼容性
+
+- 枚举类型与数字类型兼容，并且数字类型与枚举类型兼容
+- 不同枚举类型之间是不兼容的
+
+```js
+//数字可以赋给枚举
+enum Colors {Red,Yellow}
+let c:Colors;
+c = Colors.Red;
+c = 1;
+c = '1';
+
+//枚举值可以赋给数字
+let n:number;
+n = 1;
+n = Colors.Red;
+```
 
 ## 类
 
-```tsx
+```js
 class Person{
     name:string;
     constructor(name:string){
@@ -223,7 +458,7 @@ console.log(w.run())
 
 `private`:私有属性，只能自己访问，子类和其他都不能访问
 
-```tsx
+```js
 class Person{
 	private name:string;
 	constructor(name:string){
@@ -237,7 +472,7 @@ console.log(person.name)  // name属性外部访问报错
 
 `protected`:保护类型 在类里面和子类可以访问  外部不能访问
 
-```tsx
+```js
 class Person{
 	private name:string;
 	constructor(name:string){
@@ -248,7 +483,7 @@ class Person{
 
 ### 静态属性
 
-```tsx
+```js
 class Person{
 	static age:number=20;
 }
@@ -262,7 +497,7 @@ class Person{
 
 ## 函数
 
-```tsx
+```js
 interface GetFunc{
     (x:string,y:string):string
 }
@@ -279,7 +514,7 @@ console.log(func('2','1'))
 - 重写是指子类重写继承自父类中的方法
 - 重载是指为同一个函数提供多个类型定义
 
-```tsx
+```js
 function double(val:number):number
 function double(val:string):string
 function double(val:any):any{
@@ -295,7 +530,7 @@ console.log(r);
 
 ### arguments
 
-```tsx
+```js
 function sum(...parameters: number[]) {
     let args: IArguments = arguments;
     return Array.from(args).reduce((total,cur)=>total+cur);
@@ -308,7 +543,7 @@ console.log(total)
 
 忽略类型检查
 
-```tsx
+```js
 function createArray<T>(length:number,value:T):T[]{
     let arr:T[]=[];
     for(let i=0;i<length;i++){
@@ -321,6 +556,414 @@ function createArray<T>(length:number,value:T):T[]{
 let arr=createArray<string>(3,'x');
 console.log(arr);
 ```
+
+## 泛型
+
+- 泛型是在定义函数，接口或者类的时候，不预先指定类型，而在使用的时候再指定类型的一种特性
+- 泛型`T`作用域只限于函数内部使用
+
+```js
+function fn<T>(num: T): Array<T> {
+    let arr: Array<T> = [];
+    arr.push(num);
+    return arr;
+}
+fn<string>('1')
+```
+
+### 泛型类
+
+```js
+class MyArray<T>{
+    private list:T[]=[];
+    add(value:T) {
+        this.list.push(value);
+    }
+    getMax():T {
+        let result=this.list[0];
+        for (let i=0;i<this.list.length;i++){
+            if (this.list[i]>result) {
+                result=this.list[i];
+            }
+        }
+        return result;
+    }
+}
+let arr=new MyArray();
+arr.add(1); arr.add(2); arr.add(3);
+let ret = arr.getMax();
+console.log(ret);
+```
+
+### 泛型接口
+
+```js
+interface Calculate{
+  <T>(a:T,b:T):T
+}
+let add:Calculate = function<T>(a:T,b:T){
+  return a;
+}
+add<number>(1,2);
+```
+
+### 多个泛型参数
+
+```js
+function swap<A,B>(tuple:[A,B]):[B,A]{
+  return [tuple[1],tuple[0]];
+}
+let swapped = swap<string,number>(['a',1]);
+console.log(swapped);
+console.log(swapped[0].toFixed(2));
+console.log(swapped[1].length);
+```
+
+### 默认泛型类型
+
+```js
+function createArray3<T=number>(length: number, value: T): Array<T> {
+  let result: T[] = [];
+  for (let i = 0; i < length; i++) {
+    result[i] = value;
+  }
+  return result;
+}
+let result2 = createArray3(3,'x');
+console.log(result2);
+```
+
+### 泛型约束
+
+在函数中使用泛型的时候，由于预先并不知道泛型的类型，所以不能随意访问相应类型的属性或方法。
+
+```js
+function logger<T>(val: T) {
+    console.log(val.length); //直接访问会报错
+}
+//可以让泛型继承一个接口
+interface LengthWise {
+    length: number
+}
+//可以让泛型继承一个接口
+function logger2<T extends LengthWise>(val: T) {
+    console.log(val.length)
+}
+logger2('zhufeng');
+logger2(1);
+```
+
+## 类型变换
+
+### 交叉类型
+
+交叉类型（Intersection Types）表示将多个类型合并为一个类型
+
+```js
+interface Bird {
+    name: string,
+    fly(): void
+}
+interface Person {
+    name: string,
+    talk(): void
+}
+type BirdPerson = Bird & Person;
+let p: BirdPerson = { name: 'zhufeng', fly() { }, talk() { } };
+p.fly;
+p.name
+p.talk;
+```
+
+### typeof
+
+- 可以获取一个变量的类型
+
+```js
+//先定义类型，再定义变量
+type People = {
+    name:string,
+    age:number,
+    gender:string
+}
+let p1:People = {
+    name:'zhufeng',
+    age:10,
+    gender:'male'
+}
+//先定义变量，再定义类型
+let p1 = {
+    name:'zhufeng',
+    age:10,
+    gender:'male'
+}
+type People = typeof p1;
+function getName(p:People):string{
+    return p.name;
+}
+getName(p1);
+```
+
+### 索引访问操作符
+
+- 可以通过[]获取一个类型的子类型
+
+```js
+interface Person{
+    name:string;
+    age:number;
+    job:{
+        name:string
+    };
+    interests:{name:string,level:number}[]
+}
+let FrontEndJob:Person['job'] = {
+    name:'前端工程师'
+}
+let interestLevel:Person['interests'][0]['level'] = 2;
+```
+
+### keyof
+
+- 索引类型查询操作符
+
+```js
+interface Person{
+  name:string;
+  age:number;
+  gender:'male'|'female';
+}
+//type PersonKey = 'name'|'age'|'gender';
+type PersonKey = keyof Person;
+
+function getValueByKey(p:Person,key:PersonKey){
+  return p[key];
+}
+let val = getValueByKey({name:'zhufeng',age:10,gender:'male'},'name');
+console.log(val);
+```
+
+### 映射类型
+
+- 在定义的时候用in操作符去批量定义类型中的属性
+
+```js
+interface Person{
+  name:string;
+  age:number;
+  gender:'male'|'female';
+}
+//批量把一个接口中的属性都变成可选的
+type PartPerson = {
+  [Key in keyof Person]?:Person[Key]
+}
+
+let p1:PartPerson={};
+//也可以使用泛型
+type Part<T> = {
+  [key in keyof T]?:T[key]
+}
+let p2:Part<Person>={};
+```
+
+## 内置工具类型
+
+### Partial<T>
+
+将类型 `T` 的所有属性标记为可选属性
+
+```js
+type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
+```
+
+```js
+// 账号属性
+interface AccountInfo {
+    name: string 
+    email: string 
+    age: number 
+    vip: 0|1 // 1 是vip ，0 是非vip
+}
+
+// 当我们需要渲染一个账号表格时，我们需要定义
+const accountList: AccountInfo[] = []
+
+// 但当我们需要查询过滤账号信息，需要通过表单，
+// 但明显我们可能并不一定需要用到所有属性进行搜索，此时可以定义
+const model: Partial<AccountInfo> = {
+  name: '',
+  vip: undefind
+}
+```
+
+### Required<T>
+
+与 `Partial` 相反，`Required` 将类型 T 的所有属性标记为必选属性
+
+```js
+type Required<T> = {
+    [P in keyof T]-?: T[P];
+};
+```
+
+```js
+interface Person{
+    name?:string,
+    age?:number
+}
+type Require<T> = { [P in keyof T]-?: T[P] };  // 设置之后属性为必填，不填会报错
+let p:Required<Person> = {
+    name:'xiaoming',
+    age:20
+}
+```
+
+#### Readonly
+
+`Readonly` 通过为传入的属性每一项都加上 `readonly` 修饰符来实现。
+
+```js
+interface Person{
+  name:string;
+  age:number;
+  gender?:'male'|'female';
+}
+//type Readonly<T> = { readonly [P in keyof T]: T[P] };
+let p:Readonly<Person> = {
+  name:'111',
+  age:10,
+  gender:'male'
+}
+p.age = 11;  //修改报错
+```
+
+### Pick
+
+从大类型中截取几个小类型使用
+
+```js
+type Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+```
+
+```js
+interface AccountInfo {
+  name: string 
+  email: string 
+  age: number 
+  vip?: 0|1 // 1 是vip ，0 是非vip
+}
+
+type CoreInfo = Pick<AccountInfo, 'name' | 'email'>
+/* 
+{ 
+  name: string
+  email: stirng
+}
+*/
+```
+
+### Omit
+
+从类型中删除某属性使用
+
+```js
+interface Todo {
+    title: string;
+    description: string;
+    completed: boolean;
+}
+
+type TodoPreview = Omit<Todo, 'description'>;
+
+const todo: TodoPreview = {
+    title: 'Clean room',
+    completed: false
+};
+
+
+interface Todo {
+    title: string;
+    description: string;
+    completed: boolean;
+}
+
+type TodoPreview = Omit<Todo, 'description'|'completed'>;
+
+const todo: TodoPreview = {
+    title: 'Clean room'
+};
+```
+
+###  Exclude
+
+不包括某类型
+
+```js
+type E = Exclude<string|number,boolean>;  // 定义一个类型，包括string,number 不包括boolean
+let e:E = '10';
+```
+
+### Extract
+
+提取某类型
+
+```js
+type  E = Extract<string|number,string>;  // 在string和number中 提取string类型
+let e:E = '1';
+```
+
+### NonNullable
+
+排除`null`和`undefined`
+
+```js
+type  E = NonNullable<string|number|null|undefined>;
+let e:E = 1;
+```
+
+### ReturnType
+
+```js
+function getUserInfo() {
+    return { name: "xiaoming", age: 10 };
+  }
+  
+
+// 通过 ReturnType 将 getUserInfo 的返回值类型赋给了 UserInfo
+type UserInfo = ReturnType<typeof getUserInfo>;
+
+const userA: UserInfo = {
+  name: "xiaoming1",
+  age: 10
+};
+```
+
+### InstanceType
+
+获取构造函数类型的实例类型
+
+```js
+class Person{
+    name:string;
+    age:number;
+    constructor(name:string,age:number){
+        this.name=name;
+        this.age=age;
+    }
+}
+type p=InstanceType<typeof Person>;
+let p1:p={name:'wer',age:20}
+```
+
+### 更多
+
+<https://www.typescriptlang.org/docs/handbook/utility-types.html#instancetypet>
+
+## 类型声明文件
 
 
 
@@ -378,6 +1021,18 @@ console.log(arr);
   "listEmittedFiles": true, // 打印输出文件
   "listFiles": true// 打印编译的文件(包括引用的声明文件)
 }
+```
+
+## is
+
+判断一个变量属于某个接口|类型
+
+```js
+function isNumber(value: any): value is string {
+	// 可以进行进一步处理
+	return typeof value === "number";
+}
+console.log(isNumber(20))
 ```
 
 
