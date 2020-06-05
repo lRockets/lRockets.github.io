@@ -768,7 +768,7 @@ let p2:Part<Person>={};
 
 ## 内置工具类型
 
-### Partial<T>
+### Partial
 
 将类型 `T` 的所有属性标记为可选属性
 
@@ -798,7 +798,7 @@ const model: Partial<AccountInfo> = {
 }
 ```
 
-### Required<T>
+### Required
 
 与 `Partial` 相反，`Required` 将类型 T 的所有属性标记为必选属性
 
