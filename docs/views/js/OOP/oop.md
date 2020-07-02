@@ -688,7 +688,7 @@ new new Foo().getName();
  }
 var f = new Fn(); //  f = {x:100,getX:function (){console.log(this.x)}}
 console.log(f);
-console.log(f.hasOwnProperty('X')) //
+console.log(f.hasOwnProperty('X')) // false
 console.log(f.num); //undefined
 ```
 
