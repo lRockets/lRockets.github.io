@@ -27,11 +27,11 @@ module.exports = {
 				"link": "/",
 				"icon": "reco-home"
 			},
-			{
-				"text": "时间轴",
-				"link": "/timeline/",
-				"icon": "reco-date"
-			},
+			// {
+			// 	"text": "时间轴",
+			// 	"link": "/timeline/",
+			// 	"icon": "reco-date"
+			// },
 			// {
 			//   "text": "Contact",
 			//   "icon": "reco-message",
@@ -84,3 +84,8 @@ module.exports = {
 		"lineNumbers": false
 	}
 }
+
+
+
+
+	 
